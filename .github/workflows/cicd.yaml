@@ -1,0 +1,47 @@
+name: CI med Docker
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+# Trengs for å kunne pushe til GitHub Container Registry (GHCR)
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sjekk ut repo
+        uses: actions/checkout@v4
+
+      - name: Bygg testimage
+        run: |
+          docker build -f Dockerfile.test -t docker-cicd-tests .
+
+      - name: Kjør tester i container
+        run: |
+          docker run --rm docker-cicd-tests
+
+      # - name: Bygg produksjonsimage
+      #   run: |
+      #     docker build -t docker-cicd-app .
+
+      # - name: Logg inn på Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # - name: Tag og push image til Docker Hub
+      #   run: |
+      #     IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/docker-cicd-demo:latest"
+      #     docker tag docker-cicd-app "$IMAGE"
+      #     docker push "$IMAGE"
+
+      # - name: Trigger deploy på Render
+      #   run: |
+      #     curl -fsS "${{ secrets.RENDER_DEPLOY_HOOK }}"
